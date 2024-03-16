@@ -21,7 +21,7 @@ const posts = (await getCollection("blog")).sort(
 				<div class="grid gap-5 grid-cols-3">
 					{
 						posts.map((post) => (
-								<a href={`/blog/${post.slug}/`}>
+								<a href={`/${post.slug}/`}>
 <img class="rounded-xl w-[720px] h-[360px] shadow-md object-cover object-center" src={post.data.heroImage} alt="" />
 									<h4 class="text-2xl line-clamp-2 font-extrabold mt-4">{post.data.title}</h4>
 									<p class="mt-3">
