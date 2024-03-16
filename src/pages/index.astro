@@ -1,0 +1,45 @@
+---
+import { getCollection } from "astro:content";
+import BaseHead from "../components/BaseHead.astro";
+import Footer from "../components/Footer.astro";
+import FormattedDate from "../components/FormattedDate.astro";
+import { SITE_DESCRIPTION, SITE_TITLE } from "../consts";
+
+const posts = (await getCollection("blog")).sort(
+	(a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf(),
+);
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+	</head>
+	<body>
+		<main>
+			<section class="max-w-7xl mx-auto px-4 py-12">
+				<div class="grid gap-5 grid-cols-3">
+					{
+						posts.map((post) => (
+								<a href={`/blog/${post.slug}/`}>
+<img class="rounded-xl w-[720px] h-[360px] shadow-md object-cover object-center" src={post.data.heroImage} alt="" />
+									<h4 class="text-2xl line-clamp-2 font-extrabold mt-4">{post.data.title}</h4>
+									<p class="mt-3">
+										<FormattedDate date={post.data.pubDate} />
+									</p>
+								</a>
+						))
+					}
+				</div>
+			</section>
+					<section class="max-w-7xl mx-auto px-4 py-12">
+				<div class="w-full bg-slate-200 px-4 py-6 rounded-xl">
+					<h2 class="text-3xl mb-5 font-bold">Dicordコミュニティに参加する</h2>
+					<p>YUTA STUDIOのDiscordサーバーでは、新しい技術に関する話題や、様々な議論を積極的に行っています。お気軽にご参加ください！</p>
+					<button>サーバーに参加</button>
+				</div>
+				</section>
+		</main>
+		<Footer />
+	</body>
+</html>
