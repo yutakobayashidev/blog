@@ -7,17 +7,18 @@ import TableOfContents from "../components/TableOfContents.astro";
 import { SITE_DESCRIPTION } from "../consts";
 
 type Props = {
-	content: CollectionEntry<"blog">["data"];
+	content: CollectionEntry<"blog">;
 	headings: { depth: number; slug: string; text: string }[];
 };
 
-const { title, description, pubDate, heroImage } = Astro.props.content;
+const { title, description, pubDate, heroImage } = Astro.props.content.data;
 const { headings } = Astro.props;
+const { site } = Astro;
 ---
 
 <html lang="ja">
 <head>
-  <BaseHead title={title} description={description || SITE_DESCRIPTION} />
+  <BaseHead image={heroImage ? `${site?.origin}${heroImage}` : `${site?.origin}image/${Astro.props.content.slug}.png`} title={title} description={description || SITE_DESCRIPTION} />
 </head>
 <body>
   <main>
