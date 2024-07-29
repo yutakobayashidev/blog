@@ -1,0 +1,261 @@
+---
+title: TypeScriptプロジェクトの個人的プラティクス
+pubDate: 2024-07-29
+---
+
+TypeScriptは、フロントエンド開発を始め、バックエンド開発にも広く使用されるようになりました。
+様々なJSツールチェンやライブラリなどが乱立し、選択に悩むことが多々あったので、2024年現在の個人的プラティクスをまとめました。
+
+## 依存関係・バージョン・monorepo
+
+### Mise
+
+Miseは、Rust製のパッケージマネージャです。コマンドが直感的でシンプルであり`.mise.toml`だけでなく、asdfの`.tool-versions`などと互換性があります。
+
+```bash
+$ mise install node@20
+```
+
+### pnpm
+
+pnpmは、npmやyarnと同じくNode.jsのパッケージマネージャです。pnpmは、ハードリンクを使ってパッケージを共有するため、ディスクスペースを節約できます。また、パッケージのインストールやアップデートが高速であることが特徴です。
+また、pnpmは、monorepoをサポートしています。
+
+### Turborepo
+
+Turborepoは、Vercelが開発しているJavaScript/TypeScriptプロジェクト向けの高性能ビルドシステムです。monorepoに特化しており、以下のような特徴があります：
+
+- インクリメンタルビルド: 変更されたファイルのみをビルドすることで、ビルド時間を大幅に短縮します
+- キャッシング: ローカルおよびリモートでビルド結果をキャッシュし、再利用することで効率を高めます
+- 並列実行: タスクを並列で実行し、マルチコアCPUを最大限に活用します。
+- タスク依存関係: プロジェクト間の依存関係を定義し、適切な順序でタスクを実行します。
+- モノレポ最適化: 大規模なモノレポプロジェクトでのパフォーマンスと開発体験を向上させます。
+
+### only-allow
+
+only-allowは、指定したnpmパッケージマネージャー以外で依存関係をインストールすることを禁止するツールです。例えばpnpmを使っている場合、npmやyarnで依存関係をインストールすることを防ぐことができます。
+
+```json
+{
+  "scripts": {
+    "preinstall": "npx only-allow pnpm"
+  }
+}
+```
+
+## リント・フォーマット
+
+### Biome
+
+Biomeは、Rust製のWebツールチェンです。Rome Tools Incが解散した後、Romeの公式フォークして開発されています。
+
+JavaScript、TypeScript、JSX、TSX、JSON用の高速フォーマット、ESLint、TypeScript ESLintのあるリンターを提供します。
+CIのインテグレーションなども提供されており、Github Actionsとの連携を素早く行えます。
+
+
+https://biomejs.dev/
+
+### sherif
+
+Sheriff は、monorepo用のzero configリンターです。依存関係をモノレポ全体で同じバージョンを使うよう保つようにしたり、誤ってnpmレジストラに登録されないように設定するように強制することができます。
+
+### sinple-git-hooks
+
+sinple-git-hooksは、gitのフックを簡単に設定できるツールです。pre-commitなどのフックを設定することができます。
+Huskyなどよりもシンプルで、package.jsonに記述するだけで設定できます。
+
+先ほど上げたBiomeとsherifと組み合わせることで、コミット時に自動でリント・フォーマットを行うことができます。
+
+```json
+{
+  "scripts": {
+    "format": "biome format . --write",
+    "lint": "biome check .",
+    "lint:fix": "pnpm lint --write",
+    "lint:repo": "sherif",
+    "preinstall": "npx only-allow pnpm",
+    "prepare": "pnpm simple-git-hooks"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm format && pnpm lint:fix && pnpm lint:repo"
+  },
+}
+```
+
+## 実行・コンパイル・ビルド
+
+### esbuild
+
+esbuildは、高速なJavaScript/TypeScriptビルドツールです。esbuildは、JavaScript/TypeScriptのコードを高速にバンドルすることができます。また、esbuildは、JavaScript/TypeScriptのコードを高速にコンパイルすることができます。
+
+しかし、型チェックなどは行わないため、tscと組み合わせることが多いです。
+
+Wasmバイナリも提供されているため、ウェブブラウザのプレイグラウンドでの使用などのユースケースにも対応できます。
+
+### tsup
+
+tsupは、esbuildを利用して、設定なしでTypeScriptライブラリをバンドルするためのツールです。DTSファイルも生成されるため、型定義ファイルを提供することができます。
+
+### TSX
+
+TSXは、esbuildを使用してTypeScriptファイルを実行するためのツールです。cummonjsや、ts-nodeはサポートしていないESMやホットリロードなどもサポートしています。
+
+## フロントエンドツール
+
+### React
+
+Reactは、Facebookが開発したJavaScriptライブラリです。UIを構築するためのコンポーネントベースのライブラリであり、JavaScriptのコードを高速に実行することができます。
+
+### Vite
+
+Viteは、Vue.jsの開発チームによって開発されたフロントエンドビルドツールです。
+
+Webpackとは異なり、TypeScriptなどの特別な設定はせずにモダンな開発環境を整備することが可能です。
+
+Viteは開発モードではesbuildでビルドを行いNative ES Modulesを使用しますが、本番モードではModules を使用せずにRollupを使用してバンドルを行っています。
+しかし、これは開発時とプロダクション時で一貫性のないビルドプロセスを踏むことになるため、課題となっています。
+
+そのため、RolldownやFarmなどのプロジェクトが登場しています。
+
+### Next.js
+
+Next.jsは、Vercelが開発したReactフレームワークです。Next.jsは、Reactアプリケーションを構築するためのフレームワークであり、サーバーサイドレンダリングや静的サイト生成などの機能を提供します。
+
+ver 13からApp Routerが導入され、ルーティングやキャッシュの柔軟性が向上しましたが、ライブラリの互換性やキャッシュの理解の難しさなどが課題とされています。
+
+私個人としては、小さなアプリはVite + React + React Routerで作ってしまうことが多いです。
+
+### Astro
+
+Astroは、高速でコンテンツ主導の Web サイトの構築に最適化された JavaScript Web フレームワークです。
+このウェブサイトもAstroで構築されています。
+
+AstroはMPAがデフォルトであるライブラリですが、View Transitionなどでも注目されました。
+
+### Tailwind CSS
+
+Tailwind CSSは低レベルのユーティリティファーストなCSSフレームワークです。CSSのクラス内に書くことで、デザインを簡単に行うことができます。
+また、ビルド時に未使用のCSSを削除することができるため、パフォーマンスを向上させることができます。
+
+近年、Tailwind CSSを使用したUIライブラリなども多く登場しています。
+
+### Radix UI
+
+Radix UIは、ReactコンポーネントのためのプリミティブなUIコンポーネントライブラリです。Radix UIは、Reactのコンポーネントを使用して、モダンなUIを構築することができます。
+
+### shadcn/ui
+
+shadcn/uiは、 Radix UIとTailwindをコアで採用した自由にコピーしカスタムして構築できるReactコンポーネントコレクションです。
+柔軟性が非常に高く、必要なコンポーネントだけを選択できます。
+
+また、npmパッケージとして配布されていませんし、その予定もありません。
+
+### clsx
+
+clsxは、CSSクラス名を動的に生成するためのライブラリです。
+
+### lucide-react
+
+lucide-reactは、SVGアイコンセットです。SVGアイコンをReactコンポーネントとして使用することができます。
+
+### jotai
+
+jotaiは、Reactのための状態管理ライブラリです。Reactのコンポーネントツリーを使用して状態を管理することができます。
+
+### react-hook-form
+
+react-hook-formは、Reactのためのフォームライブラリです。Reactのコンポーネントツリーを使用してフォームを作成することができます。
+React 19から追加されるフックによって立ち位置がまた変化すると予想できます。
+
+### react-tweet
+
+react-tweetは、Vercelが開発するReactのためのTwitter埋め込みライブラリです。
+APIを経由してツイートを描画するため、iframeを使用するよりもパフォーマンスに優れています。
+
+## バックエンドツール
+
+### Hono
+
+Honoは、web Standardをベースにした、高速でシンプルなフレームワークです。
+Cloudflare Workersに展開する場合やREST APIを作成する用途などで使われる事が多いです。
+
+ミドルウェアやサードパーティのミドルウェアを多数提供しているため、開発者エクスペリエンスが非常に向上します。
+
+### valibot
+
+valibotは、バリデーションライブラリです。zodなどのバリデーションライブラリと比較して、ツリーシェイキングなどが使用されているためバンドルサイズ、型の安全性、開発者エクスペリエンスなどに優れています。
+Honoなどでvalibotミドルウェアが提供されていることも特徴です。
+
+## データベース / ORM / ユニークID
+
+### Drizzle ORM
+
+Drizzle ORMは、TypeScriptのためのORMです。軽量でエッジで動作し、パフォーマンスに優れ、コード生成などが行われないことが特徴です。
+
+### nanoid
+
+nanoidはUUIDで問題とされていた、生成結果の文字列が長い問題を解決するユニーク識別子であり、URLなどに使用しやすいです。nanoidは、UUID v4と非常に似ており、かつ短い文字列を生成することができ、ID内のランダムビットの数はほぼ同じ (NanoID では 126、UUIDでは122)です。
+
+重複の可能性が 10 億分の 1 になるようにするには、バージョン4の ID を 103 兆個生成する必要があります。
+
+### uuidv7
+
+uuidv7は、RDBのプリマリーキーとして用いる際の課題を解決したユニーク識別子です。
+
+UUID v4では、新しいレコードが追加されるたびにランダムな位置にインサートされるため、インデックスが断片化しやすくなります。一方、uuidv7は時間順に値が生成されるため、常にインデックスの最後にインサートされることが保証され、断片化を防ぎます。
+
+また、uuidv7はミリ秒単位でのタイムスタンプを含んでおり、高精度なタイムスタンプを必要とするアプリケーションでも利用可能です。これにより、分散システムやリアルタイムアプリケーションでの使用にも適しています。
+
+## 認証 / 認可
+
+### Lucia
+
+Luciaはセッション処理の複雑さを抽象化する柔軟性の高い認証ライブラリです。非常にシンプルで、Node.js環境はもちろん、Cloudflare Workersなどの環境でも使用できます。
+
+NextAuthは、認証のためのライブラリとしては非常に優れていますが、バグが多く細かい挙動を制御できないなどの課題があり、Luciaはより薄く、よりシンプルかつ柔軟性のあるライブラリです。
+
+また、Luciaは同じ作者が開発した以下のライブラリと組み合わせることで、よりスピーディに開発を進めることができます。
+
+- Oslo: 認証関連のユーティリティ (crypto,cookie,encoding,oauth2 helper,otp,password hashなど)のコレクションを提供するライブラリ
+- Arctic: 軽量で、多数のプロバイダーをサポートするOAuth 2.0 ライブラリ OAuth 2.0に準拠しないパラメータは自分でセットする必要がありますが、その分柔軟性が高いです。
+
+また、将来的にデータベースアダプターは削除される予定で、より柔軟性が向上されることが予想されます。
+
+https://github.com/lucia-auth/lucia/issues/1639 
+
+## テスト
+
+### Vitest
+
+Vitestとは Viteネイティブの超高速ユニットテストフレームワークです。Jest互換でTypeScriptやJSXなどのモダンな機能をサポートしています。CI/CDの統合も簡単に行えます。
+
+### Playwright
+
+Playwrightは、ブラウザの自動化ライブラリです。Playwrightは、Chromium、Firefox、WebKitなどのブラウザをサポートしており、ブラウザの自動化E2Eテストを簡単に行うことができます。
+
+## デプロイ・ホスティング
+
+### Cloudflare Workers
+
+Cloudflare Workersは、Cloudflareが提供するサーバーレスプラットフォームです。Cloudflare Workersは、JavaScriptやRustなどの言語を使用して、CDN Edgeで配信されるサーバーレスアプリケーションを構築することができます。
+
+### Vercel
+
+Vercelは、Next.jsの開発元であるVercelが提供するサーバーレスプラットフォームです。
+
+主にフロントエンドアプリケーションをデプロイするためのプラットフォームであり、GitHubやGitLabなどのリポジトリと連携して、CI/CDパイプラインを構築することができます。
+
+## VsCodeの設定
+
+Next.jsのApp Routerでは、ルートごとに名前が同じ`page.tsx`や`layout.tsx`などを定義する必要があり、Vscodeのタブで見分けるのに苦労します。
+しかし、24年4月5日にリリースされたVScode ver.1.88から、タブにディレクトリ名も表示できるようになりました。これで見分けがつきやすくなり、開発者体験が向上します。
+
+```json
+{
+    "workbench.editor.customLabels.patterns": {
+        "**/app/**/page.tsx": "${dirname} - Page",
+        "**/app/**/layout.tsx": "${dirname} - Layout",
+        "**/component/**/index.tsx": "${dirname} - Component"
+    }
+}
+```
