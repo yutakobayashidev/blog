@@ -10,10 +10,9 @@ const fallback = async () =>
 
 export async function getStaticPaths() {
 	const posts = await getCollection("blog");
-	return posts.map((post) => ({
-		params: { slug: post.slug },
-		props: post,
-	}));
+	return posts
+		.filter((post) => post.data.heroImage !== undefined)
+		.map((post) => ({ params: [post.slug] }));
 }
 
 export const GET: APIRoute = async ({ params }) => {
