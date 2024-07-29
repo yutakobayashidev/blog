@@ -1,6 +1,7 @@
 ---
-title: TypeScriptプロジェクトの個人的プラティクス
+title: TypeScriptプロジェクトツールの個人的プラティクス
 pubDate: 2024-07-29
+heroImage: /ts.png
 ---
 
 TypeScriptは、フロントエンド開発を始め、バックエンド開発にも広く使用されるようになりました。
@@ -43,13 +44,23 @@ only-allowは、指定したnpmパッケージマネージャー以外で依存�
 }
 ```
 
+### Changesets
+
+changesetsは、npmパッケージのリリースを管理するためのツールです。changesetsを使用すると、npmパッケージのリリースに関する情報を追跡し、変更履歴を生成することができます。
+
+### pkg.pr.new
+
+pkg.pr.new はコミットごとにプレビューリリースを一時レジストリに公開し、ローカルプロジェクトまたはオンラインのStackBlitzの最小限の複製ですぐに修正にアクセスしてテストできるようになります。
+
+このツールは、リリース前に変更が正しく機能することを確認して回帰を回避するのに特に役立ちます。
+
 ## リント・フォーマット
 
 ### Biome
 
 Biomeは、Rust製のWebツールチェンです。Rome Tools Incが解散した後、Romeの公式フォークして開発されています。
 
-JavaScript、TypeScript、JSX、TSX、JSON用の高速フォーマット、ESLint、TypeScript ESLintのあるリンターを提供します。
+JavaScript、TypeScript、JSX、TSX、JSON用の高速フォーマット、ESLint、TypeScript ESLintと互換のあるリンターを提供します。
 CIのインテグレーションなども提供されており、Github Actionsとの連携を素早く行えます。
 
 
@@ -112,7 +123,8 @@ Viteは、Vue.jsの開発チームによって開発されたフロントエン�
 
 Webpackとは異なり、TypeScriptなどの特別な設定はせずにモダンな開発環境を整備することが可能です。
 
-Viteは開発モードではesbuildでビルドを行いNative ES Modulesを使用しますが、本番モードではModules を使用せずにRollupを使用してバンドルを行っています。
+Viteは開発モードではesbuildでビルドを行いNative ES Modulesを使用しますが、本番モードではラウンドトリップ数が増加するため最適化されたローディングパフォーマンスが得られないため、ES Modulesを使用せずにRollupを使用してバンドルを行っています。
+
 しかし、これは開発時とプロダクション時で一貫性のないビルドプロセスを踏むことになるため、課題となっています。
 
 そのため、RolldownやFarmなどのプロジェクトが登場しています。
@@ -125,12 +137,27 @@ ver 13からApp Routerが導入され、ルーティングやキャッシュの�
 
 私個人としては、小さなアプリはVite + React + React Routerで作ってしまうことが多いです。
 
+#### VSCodeの設定
+
+Next.jsのApp Routerでは、ルートごとに名前が同じ`page.tsx`や`layout.tsx`などを定義する必要があり、VSCodeのタブで見分けるのに苦労します。
+しかし、24年4月5日にリリースされたVSCode ver.1.88から、タブにディレクトリ名も表示できるようになりました。これで見分けがつきやすくなり、開発者体験が向上します。
+
+```json
+{
+    "workbench.editor.customLabels.patterns": {
+        "**/app/**/page.tsx": "${dirname} - Page",
+        "**/app/**/layout.tsx": "${dirname} - Layout",
+        "**/component/**/index.tsx": "${dirname} - Component"
+    }
+}
+```
+
 ### Astro
 
 Astroは、高速でコンテンツ主導の Web サイトの構築に最適化された JavaScript Web フレームワークです。
 このウェブサイトもAstroで構築されています。
 
-AstroはMPAがデフォルトであるライブラリですが、View Transitionなどでも注目されました。
+AstroはIslandsアプローチを採用していることが特徴かつMPAがデフォルトであるフレームワークですが、View Transitionなどでも注目されました。
 
 ### Tailwind CSS
 
@@ -152,15 +179,46 @@ shadcn/uiは、 Radix UIとTailwindをコアで採用した自由にコピーし
 
 ### clsx
 
-clsxは、CSSクラス名を動的に生成するためのライブラリです。
+clsxは、CSSクラス名を動的に生成するためのライブラリです。classnamesよりも高速です。
+
+```tsx
+import clsx from 'clsx';
+// or
+import { clsx } from 'clsx';
+
+// Strings (variadic)
+clsx('foo', true && 'bar', 'baz');
+//=> 'foo bar baz'
+
+// Objects
+clsx({ foo:true, bar:false, baz:isTrue() });
+//=> 'foo baz'
+
+// Objects (variadic)
+clsx({ foo:true }, { bar:false }, null, { '--foobar':'hello' });
+//=> 'foo --foobar'
+
+// Arrays
+clsx(['foo', 0, false, 'bar']);
+//=> 'foo bar'
+
+// Arrays (variadic)
+clsx(['foo'], ['', 0, false, 'bar'], [['baz', [['hello'], 'there']]]);
+//=> 'foo bar baz hello there'
+
+// Kitchen sink (with nesting)
+clsx('foo', [1 && 'bar', { baz:false, bat:null }, ['hello', ['world']]], 'cya');
+//=> 'foo bar hello world cya'
+```
 
 ### lucide-react
 
 lucide-reactは、SVGアイコンセットです。SVGアイコンをReactコンポーネントとして使用することができます。
+shadcn/uiでも採用されており、数も多いため採用することが多いです。
 
 ### jotai
 
-jotaiは、Reactのための状態管理ライブラリです。Reactのコンポーネントツリーを使用して状態を管理することができます。
+jotaiは、Reactのためのグローバル状態管理ライブラリです。Reactのコンポーネントツリーを使用して状態を管理することができます。
 
 ### react-hook-form
 
@@ -180,6 +238,8 @@ Honoは、web Standardをベースにした、高速でシンプルなフレー�
 Cloudflare Workersに展開する場合やREST APIを作成する用途などで使われる事が多いです。
 
 ミドルウェアやサードパーティのミドルウェアを多数提供しているため、開発者エクスペリエンスが非常に向上します。
+
+最近は、web StandardとEdgeの魅力に惹かれ、[hanabi.rest](https://hanabi.rests)というプロダクトも開発しています。
 
 ### valibot
 
@@ -212,7 +272,7 @@ UUID v4では、新しいレコードが追加されるたびにランダムな�
 
 Luciaはセッション処理の複雑さを抽象化する柔軟性の高い認証ライブラリです。非常にシンプルで、Node.js環境はもちろん、Cloudflare Workersなどの環境でも使用できます。
 
-NextAuthは、認証のためのライブラリとしては非常に優れていますが、バグが多く細かい挙動を制御できないなどの課題があり、Luciaはより薄く、よりシンプルかつ柔軟性のあるライブラリです。
+IDaaSは特定のプロバイダーをサポートしていない場合や複数プロバイダーを跨ぐアカウントリンクなどの課題があり、NextAuthは、認証のためのライブラリとしては非常に優れていますが、バグが多く細かい挙動を制御できないなどの課題があり、Luciaはより薄く、よりシンプルかつ柔軟性のあるライブラリです。
 
 また、Luciaは同じ作者が開発した以下のライブラリと組み合わせることで、よりスピーディに開発を進めることができます。
 
@@ -238,6 +298,7 @@ Playwrightは、ブラウザの自動化ライブラリです。Playwrightは、
 ### Cloudflare Workers
 
 Cloudflare Workersは、Cloudflareが提供するサーバーレスプラットフォームです。Cloudflare Workersは、JavaScriptやRustなどの言語を使用して、CDN Edgeで配信されるサーバーレスアプリケーションを構築することができます。
+HonoやDrizzle、Luciaなどを組み合わせれば、高速でセキュアなフルスタックWebアプリケーションのAPIを構築することができます。
 
 ### Vercel
 
@@ -245,17 +306,12 @@ Vercelは、Next.jsの開発元であるVercelが提供するサーバーレス�
 
 主にフロントエンドアプリケーションをデプロイするためのプラットフォームであり、GitHubやGitLabなどのリポジトリと連携して、CI/CDパイプラインを構築することができます。
 
-## VsCodeの設定
+Next.jsはApp Router以降、ベンダーロックインが強くなっているという批判が増えている印象を受けます。私自身もNext.js以外のアプリケーションは基本的にCloudflre Pagesを使用してしまうことが増えました。
 
-Next.jsのApp Routerでは、ルートごとに名前が同じ`page.tsx`や`layout.tsx`などを定義する必要があり、Vscodeのタブで見分けるのに苦労します。
-しかし、24年4月5日にリリースされたVScode ver.1.88から、タブにディレクトリ名も表示できるようになりました。これで見分けがつきやすくなり、開発者体験が向上します。
+## まとめ
 
-```json
-{
-    "workbench.editor.customLabels.patterns": {
-        "**/app/**/page.tsx": "${dirname} - Page",
-        "**/app/**/layout.tsx": "${dirname} - Layout",
-        "**/component/**/index.tsx": "${dirname} - Component"
-    }
-}
-```
+以上が、2024年現在の私のTypeScriptプロジェクトツールの個人的プラティクスです。
+
+積極的にRust製のツールを取り入れることで、パフォーマンスや開発体験を向上させることができ、また、ESM、Web Standard、Edgeに互換性のあるツールを選択することで、将来的な移行をスムーズに行うことができます。
+
+また、ツールの選択だけでなく、ツールの組み合わせや設定なども重要であり、それらを工夫することで、開発効率を向上させることができます。
