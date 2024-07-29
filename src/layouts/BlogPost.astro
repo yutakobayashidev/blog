@@ -10,7 +10,7 @@ type Props = CollectionEntry<"blog">["data"];
 const { title, description, pubDate, heroImage } = Astro.props;
 ---
 
-<html lang="en">
+<html lang="ja">
 	<head>
 		<BaseHead title={title} description={description || SITE_DESCRIPTION} />
 	</head>
@@ -30,6 +30,10 @@ const { title, description, pubDate, heroImage } = Astro.props;
 					</div>
 					<div class="prose">
 					<slot />
+					</div>
+					<div>
+						<h3>コントリビューター</h3>
+						
 					</div>
 			</article>
 <div>
