@@ -11,7 +11,7 @@ const fallback = async () =>
 export async function getStaticPaths() {
 	const posts = await getCollection("blog");
 	return posts
-		.filter((post) => post.data.heroImage !== undefined)
+		.filter((post) => post.data.heroImage === undefined)
 		.map((post) => ({
 			params: { slug: post.slug },
 			props: post,
