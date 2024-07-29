@@ -12,7 +12,10 @@ export async function getStaticPaths() {
 	const posts = await getCollection("blog");
 	return posts
 		.filter((post) => post.data.heroImage !== undefined)
-		.map((post) => ({ params: [post.slug] }));
+		.map((post) => ({
+			params: { slug: post.slug },
+			props: post,
+		}));
 }
 
 export const GET: APIRoute = async ({ params }) => {
