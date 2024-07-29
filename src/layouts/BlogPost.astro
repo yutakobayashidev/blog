@@ -18,7 +18,7 @@ const { site } = Astro;
 
 <html lang="ja">
 <head>
-  <BaseHead image={heroImage ? `${site?.origin}${heroImage}` : `${site?.origin}image/${Astro.props.content.slug}.png`} title={title} description={description || SITE_DESCRIPTION} />
+  <BaseHead image={heroImage ? `${site?.origin}${heroImage}` : `${site?.origin}/image/${Astro.props.content.slug}.png`} title={title} description={description || SITE_DESCRIPTION} />
 </head>
 <body>
   <main>
