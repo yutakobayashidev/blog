@@ -1,0 +1,24 @@
+---
+import BaseHead from "../components/BaseHead.astro";
+import Button from "../components/Button.astro";
+import { SITE_DESCRIPTION, SITE_TITLE } from "../consts";
+---
+
+<!doctype html>
+<html lang="ja">
+    <head>
+		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+	</head>
+	<body class="bg-white">
+        <div class="h-screen px-4 w-screen flex justify-center items-center">
+            <div class="text-center">
+                <img src="/404.png" alt="404 Not Found" class="md:w-1/2 mx-auto mb-8" />
+                <div>
+                    <p class="sm:text-2xl text-xl mb-3 font-bold">お探しのページは見つかりませんでした</p>
+                    <span class="mb-5 inline-block">Logo By <a href="https://x.com/sawaratsuki1004">SAWARATSUKI</a></span>
+                </div>
+                <Button href="/">ホームへ戻る</Button>
+            </div>
+        </div>
+    </body>
+</html> 
