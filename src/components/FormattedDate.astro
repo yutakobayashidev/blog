@@ -1,4 +1,7 @@
 ---
+import { format } from "date-fns";
+import { ja } from "date-fns/locale";
+
 interface Props {
 	date: Date;
 }
@@ -7,11 +10,5 @@ const { date } = Astro.props;
 ---
 
 <time class="text-slate-500" datetime={date.toISOString()}>
-	{
-		date.toLocaleDateString('ja-jp', {
-			year: 'numeric',
-			month: 'short',
-			day: 'numeric',
-		})
-	}
+	{format(date, 'yyyy/MM/dd', { locale: ja })}
 </time>
