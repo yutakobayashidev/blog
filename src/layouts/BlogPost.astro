@@ -7,8 +7,8 @@ import TableOfContents from "../components/TableOfContents.astro";
 import { SITE_DESCRIPTION } from "../consts";
 
 type Props = {
-  content: CollectionEntry<"blog">;
-  headings: { depth: number; slug: string; text: string }[];
+	content: CollectionEntry<"blog">;
+	headings: { depth: number; slug: string; text: string }[];
 };
 
 const { title, description, pubDate, heroImage } = Astro.props.content.data;
@@ -22,8 +22,8 @@ const { site } = Astro;
 </head>
 <body>
   <main>
-    <div class="mx-auto grid grid-cols-1 md:grid-cols-[6fr,4fr] gap-4 max-w-7xl py-12 px-4 md:px-8">
-      <article class="md:col-span-1">
+    <div class="mx-auto grid grid-cols-[6fr,4fr] gap-4 max-w-7xl py-12 px-4 md:px-8">
+      <article>
         <div class="mb-5">
           {heroImage && <img class="rounded-xl" width={1020} height={510} src={heroImage} alt="" />}
         </div>
@@ -33,12 +33,6 @@ const { site } = Astro;
             <FormattedDate date={pubDate} />
           </div>
         </div>
-        <div class="block md:hidden rounded-xl bg-slate-100 p-5 mb-5">
-          <button id="tocButton" class="text-lg font-semibold">目次を表示</button>
-          <div id="toc" class="hidden mt-3">
-            <TableOfContents headings={headings} />
-          </div>
-        </div>
         <div class="prose">
           <slot />
         </div>
@@ -46,31 +40,12 @@ const { site } = Astro;
           <h3>コントリビューター</h3>
         </div>
       </article>
-      <aside class="hidden md:block sticky rounded-xl bg-slate-100 p-5 top-5 self-start">
-        <div class="text-lg font-semibold mb-3">目次</div>
+      <aside class="sticky rounded-xl bg-slate-100 p-5 top-5 self-start">
+        <div class="text-xl font-bold mb-3">目次</div>
         <TableOfContents headings={headings} />
       </aside>
     </div>
   </main>
   <Footer />
-  <script>
-    const tocButton = document.getElementById('tocButton');
-    if (tocButton) {
-        tocButton.addEventListener('click', function() {
-            var toc = document.getElementById('toc');
-            if (toc) {
-            if (toc.classList.contains('hidden')) {
-                toc.classList.remove('hidden');
-                toc.classList.add('block');
-                this.innerText = '目次を非表示';
-            } else {
-                toc.classList.remove('block');
-                toc.classList.add('hidden');
-                this.innerText = '目次を表示';
-            }
-            }
-        });
-    }
-  </script>
 </body>
 </html>
