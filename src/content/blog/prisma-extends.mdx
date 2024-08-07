@@ -1,0 +1,88 @@
+---
+title: Prismaのextendsを使って型安全にオブジェクトを拡張する
+pubDate: 2024-08-29
+---
+
+PrismaのExtensions機能を使用すると、PrismaClientを拡張することができます。
+例えば、firstNameとlastNameを結合してfullNameを追加することができたり、クレデンシャルな情報を暗号化する処理を挟んだり、updateManyやdeleteManyを任意のクエリでのみ使用可能にすることができます。
+
+## firstNameとlastNameを結合してfullNameを追加する
+
+```ts
+prisma.$extends({
+    result: {
+    address: {
+        fullName: {
+        needs: { firstName: true, lastName: true },
+        compute({ firstName, lastName }) {
+            return `${firstName}${lastName}`;
+        },
+        },
+    },
+    },
+}),
+```
+
+## updateManyやdeleteManyを任意のクエリでのみ使用可能にする
+
+```ts
+type Models = keyof typeof Prisma.ModelName;
+type Operation = "updateMany" | "deleteMany";
+
+export type PrismaModelType<N extends Models = Models> = Prisma.TypeMap["model"][N];
+
+export type DeleteManyArgs<N extends Models> = PrismaModelType<N>["operations"]["deleteMany"]["args"];
+export type UpdateManyArgs<N extends Models> = PrismaModelType<N>["operations"]["updateMany"]["args"];
+
+export type WhereInput<N extends Models = Models> = NonNullable<DeleteManyArgs<N>["where"]>;
+export type UpdateInput<N extends Models = Models> = NonNullable<UpdateManyArgs<N>["data"]>;
+
+type AllowedOperation<T extends Models> = {
+  model: T;
+  operation: Operation;
+  condition: (where: WhereInput<T>, data?: UpdateInput<T>) => boolean;
+};
+
+const allowedOperations: AllowedOperation<Models>[] = [
+  {
+    model: "PasswordResetToken",
+    operation: "deleteMany",
+    condition: (where) =>
+      "expiresAt" in where &&
+      typeof where.expiresAt === "object" &&
+      where.expiresAt !== null &&
+      "lt" in where.expiresAt &&
+      where.expiresAt.lt instanceof Date,
+  }
+] as const;
+
+prisma.$extends({
+    query: {
+    $allModels: {
+        async updateMany({ model, args, query }) {
+        const allowedOperation = allowedOperations.find(
+            (op) =>
+            op.model === model &&
+            op.operation === "updateMany" &&
+            args.where !== undefined &&
+            args.data !== undefined &&
+            op.condition(args.where, args.data),
+        );
+        if (!allowedOperation) {
+            throw new Error(`Unauthorized updateMany operation on ${model}`);
+        }
+        return query(args);
+        },
+        async deleteMany({ model, args, query }) {
+        const allowedOperation = allowedOperations.find(
+            (op) => op.model === model && op.operation === "deleteMany" && args.where !== undefined && op.condition(args.where),
+        );
+        if (!allowedOperation) {
+            throw new Error(`Unauthorized deleteMany operation on ${model}`);
+        }
+        return query(args);
+        },
+    },
+    },
+}),
+```
